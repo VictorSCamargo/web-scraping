@@ -13,31 +13,26 @@ from utils.salvar_print import salvar_print
 # Configuração do navegador (modo headless é opcional)
 chrome_options = Options()
 chrome_options.add_argument("--headless")
+chrome_options.add_argument("--window-size=1920,1080")
 service = Service("C:/chromedriver/chromedriver.exe")  # ajuste conforme necessário
 
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 try:
-    driver.get("https://www.blueticket.com.br")
+    driver.get("https://www.blueticket.com.br/search?q=")
 
-    # Espera até que algum conteúdo principal seja carregado (ex: lista de eventos)
+    # Espera até que cards de evento estejam presentes
     WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.TAG_NAME, "h2"))
+        EC.presence_of_all_elements_located((By.CLASS_NAME, "event-card"))
     )
 
-    # Pega o título da aba (nome do site)
-    print("Título da página:", driver.title)
+    # Coleta os títulos dos eventos
+    event_titles = driver.find_elements(By.CLASS_NAME, "event-title")
 
-    # Captura alguns textos (ex: títulos, seções, etc.)
-    h1_elements = driver.find_elements(By.TAG_NAME, "h1")
-    print("\nTextos em <h1>:")
-    for h1 in h1_elements:
-        print("-", h1.text)
+    print("\nTítulos dos eventos encontrados:")
+    for title in event_titles[:10]:  # limita aos 10 primeiros
+        print("-", title.text)
 
-    p_elements = driver.find_elements(By.TAG_NAME, "p")
-    print("\nPrimeiros <p>:")
-    for p in p_elements[:5]:
-        print("-", p.text)
 
     # 👉 Você pode salvar um print a qualquer momento chamando:
     salvar_print(driver, nome_base="pagina_blueticket")
