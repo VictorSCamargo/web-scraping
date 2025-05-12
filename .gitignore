@@ -2,3 +2,4 @@ prints/*
 .png
 .jpg
 .jpeg
+__pycache__

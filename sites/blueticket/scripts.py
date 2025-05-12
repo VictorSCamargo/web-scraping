@@ -1,21 +1,14 @@
+import os
+import sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
-import os
 from datetime import datetime
 
-# Função utilitária para tirar print
-def salvar_print(driver, nome_base="screenshot"):
-    pasta = "prints"
-    os.makedirs(pasta, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    caminho = os.path.join(pasta, f"{nome_base}_{timestamp}.png")
-    driver.save_screenshot(caminho)
-    print(f"📸 Print salvo em: {caminho}")
+from utils.salvar_print import salvar_print
 
 # Configuração do navegador (modo headless é opcional)
 chrome_options = Options()
