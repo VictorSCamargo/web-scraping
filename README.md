@@ -16,6 +16,7 @@ O Selenium, para realizar operações no Chrome, precisa do Chrome for Testing (
 
 Baixe [aqui](https://googlechromelabs.github.io/chrome-for-testing/).
 
-### Mais detalhes aos desenvolvedores
+## Boas práticas aos desenvolvedores
 
-Adicionem dependências ao requirements.txt.
+- Adicionem dependências ao requirements.txt;
+- Usem a pasta `prints` para salvar prints que possam ser úteis para debug durante seus testes;
