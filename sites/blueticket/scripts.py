@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -26,15 +27,47 @@ try:
         EC.presence_of_all_elements_located((By.CLASS_NAME, "event-card"))
     )
 
-    # Coleta os títulos dos eventos
-    event_titles = driver.find_elements(By.CLASS_NAME, "event-title")
+    # Coleta os primeiros 10 cards de evento
+    event_cards = driver.find_elements(By.CLASS_NAME, "event-card")[:2]
 
-    print("\nTítulos dos eventos encontrados:")
-    for title in event_titles[:10]:  # limita aos 10 primeiros
-        print("-", title.text)
+    print("\nEventos encontrados:")
+    print(event_cards)
+    events_data = []
+    
+    for card in event_cards:
+        # Extrai o título
+        try:
+            title = card.find_element(By.CLASS_NAME, "event-title").text
+        except:
+            title = "Título não disponível"
+        
+        # Extrai o link (href)
+        try:
+            link = card.get_attribute("href")
+        except:
+            link = "Link não disponível"
+        
+        print(f"- {title} | {link}")
+        events_data.append({
+            "title": title,
+            "url": link
+        })
 
+    output_name = 'eventos_blueticket.json'
 
-    # 👉 Você pode salvar um print a qualquer momento chamando:
+    # Obtém o diretório onde o script está localizado
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Cria a pasta 'output' se não existir
+    os.makedirs(os.path.join(script_dir, 'output'), exist_ok=True)
+    json_path = os.path.join(script_dir, 'output', output_name)
+
+    # Salva os dados em um arquivo JSON
+    with open(json_path, 'w', encoding='utf-8') as f:
+        json.dump(events_data, f, ensure_ascii=False, indent=4)
+    
+    print(f"\nDados salvos com sucesso em: {json_path}")
+
+    # Salva um print da página
     salvar_print(driver, nome_base="pagina_blueticket")
 
 except Exception as e:
