@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -7,72 +6,76 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from datetime import datetime
 
 from utils.salvar_print import salvar_print
 
-# Configuração do navegador (modo headless é opcional)
+# Configuração do navegador
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=1920,1080")
-service = Service("C:/chromedriver/chromedriver.exe")  # ajuste conforme necessário
-
+service = Service("C:/chromedriver/chromedriver.exe")
 driver = webdriver.Chrome(service=service, options=chrome_options)
+wait = WebDriverWait(driver, 10)
+cards_to_extract_before_saving = 2
 
-try:
+def get_event_links(numOfEvents=1):
+    """Coleta todos os links de eventos na página de busca"""
     driver.get("https://www.blueticket.com.br/search?q=")
+    cards = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "event-card")))
+    return [card.get_attribute("href") for card in cards[:numOfEvents]]  # Limita a 10 eventos
 
-    # Espera até que cards de evento estejam presentes
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_all_elements_located((By.CLASS_NAME, "event-card"))
-    )
+def extract_event_details(url):
+    """Extrai detalhes de uma página de evento"""
+    driver.get(url)
+    details = {
+        "url": url,
+        "name": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "event-name"))).text,
+        "date": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "event-date"))).text,
+        "local-subtitle": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "local-subtitle"))).text,
+        "local-description": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "local-description"))).text,
+        "subinfos": []
+    }
 
-    # Coleta os primeiros 10 cards de evento
-    event_cards = driver.find_elements(By.CLASS_NAME, "event-card")[:2]
+    # Extrai subinformações (com fallback para texto direto)
+    for subinfo in wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "event-subinfos"))):
+        texto_completo = subinfo.text.strip()
+        if texto_completo:
+            details["subinfos"].append(texto_completo)
+    
+    return details
 
-    print("\nEventos encontrados:")
-    print(event_cards)
+def main():
+    event_links = get_event_links(1)
     events_data = []
-    
-    for card in event_cards:
-        # Extrai o título
+    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", "eventos.json")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    for idx, link in enumerate(event_links):
         try:
-            title = card.find_element(By.CLASS_NAME, "event-title").text
-        except:
-            title = "Título não disponível"
-        
-        # Extrai o link (href)
-        try:
-            link = card.get_attribute("href")
-        except:
-            link = "Link não disponível"
-        
-        print(f"- {title} | {link}")
-        events_data.append({
-            "title": title,
-            "url": link
-        })
+            print(f"Processando: {link}")
+            event = extract_event_details(link)
+            events_data.append(event)
+        except Exception as e:
+            print(f"Erro no evento {link}: {str(e)}")
+            salvar_print(driver, nome_base="erro")
+            continue
 
-    output_name = 'eventos_blueticket.json'
+        # Salva a cada X eventos processados com sucesso
+        if len(events_data) % cards_to_extract_before_saving == 0:
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(events_data, f, ensure_ascii=False, indent=2)
+            print(f"{len(events_data)} eventos salvos até agora.")
 
-    # Obtém o diretório onde o script está localizado
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Cria a pasta 'output' se não existir
-    os.makedirs(os.path.join(script_dir, 'output'), exist_ok=True)
-    json_path = os.path.join(script_dir, 'output', output_name)
+    # Salva o restante (caso o total não seja múltiplo)
+    if len(events_data) % cards_to_extract_before_saving != 0:
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(events_data, f, ensure_ascii=False, indent=2)
+        print(f"{len(events_data)} eventos salvos no final.")
 
-    # Salva os dados em um arquivo JSON
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(events_data, f, ensure_ascii=False, indent=4)
-    
-    print(f"\nDados salvos com sucesso em: {json_path}")
+    print(f"Dados finais salvos em {output_path}")
 
-    # Salva um print da página
-    salvar_print(driver, nome_base="pagina_blueticket")
-
-except Exception as e:
-    print("⚠️ Ocorreu um erro:", str(e))
-    salvar_print(driver, nome_base="erro")
-
-finally:
-    driver.quit()
+if __name__ == "__main__":
+    try:
+        main()
+    finally:
+        driver.quit()
