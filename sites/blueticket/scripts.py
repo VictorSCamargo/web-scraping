@@ -22,6 +22,7 @@ def get_event_links(numOfEvents=1):
     """Coleta todos os links de eventos na página de busca"""
     driver.get("https://www.blueticket.com.br/search?q=")
     cards = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "event-card")))
+    print(len(cards))
     return [card.get_attribute("href") for card in cards[:numOfEvents]]  # Limita a 10 eventos
 
 def extract_event_details(url):
