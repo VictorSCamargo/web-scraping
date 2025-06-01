@@ -4,7 +4,7 @@
 
 ### Dependências react
 
-O app react está na pasta [app-react](./app-react/).
+O app react está na pasta [app-react-ts](./app-react-ts/).
 
 Instale as dependências com `npm install`.
 
@@ -26,7 +26,7 @@ Baixe [aqui](https://googlechromelabs.github.io/chrome-for-testing/).
 
 ### React
 
-Entre na pasta [app-react](./app-react/) e execute `npm run dev`.
+Entre na pasta [app-react-ts](./app-react-ts/) e execute `npm run dev`.
 
 ### Python
 
