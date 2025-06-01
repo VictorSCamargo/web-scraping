@@ -2,6 +2,12 @@
 
 ## Preparando ambiente
 
+### Dependências react
+
+O app react está na pasta [app-react](./app-react/).
+
+Instale as dependências com `npm install`.
+
 ### Dependências python
 
 Instale as dependências com o comando:
@@ -10,13 +16,19 @@ Instale as dependências com o comando:
 pip install -r requirements.txt
 ```
 
-### Chrome Driver
+#### Chrome Driver
 
 O Selenium, para realizar operações no Chrome, precisa do Chrome for Testing (conhecido também como chromedriver).
 
 Baixe [aqui](https://googlechromelabs.github.io/chrome-for-testing/).
 
-### Execução
+## Execução
+
+### React
+
+Entre na pasta [app-react](./app-react/) e execute `npm run dev`.
+
+### Python
 
 Para aproveitar scripts da pasta `utils` no seu script, execute seu script como módulo.
 
