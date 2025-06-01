@@ -32,9 +32,13 @@ def extract_event_details(url):
         "url": url,
         "name": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "event-name"))).text,
         "date": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "event-date"))).text,
-        "local-subtitle": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "local-subtitle"))).text,
-        "local-description": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "local-description"))).text,
-        "subinfos": []
+        "local-subtitle": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "local-subtitle"))).text, # Nome do local
+        "local-description": wait.until(EC.presence_of_element_located((By.CLASS_NAME, "local-description"))).text, # Detalhes do endereço do local
+        "subinfos": [], # Detalhes extras resumidos ao entrar no evento
+        "description_cropped": "", # Descrição longa, que será armazenado apenas um pedaço dela
+        "classification": "", # Classificação etária ou similar
+        "parcelamento": "",
+        "nome_organizador": "",
     }
 
     # Extrai subinformações (com fallback para texto direto)
@@ -43,6 +47,57 @@ def extract_event_details(url):
         if texto_completo:
             details["subinfos"].append(texto_completo)
     
+    # Extrai conteúdo da div noMarginBottom (primeiros 255 caracteres do texto)
+    try:
+        no_margin_div = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "noMarginBottom")))
+        full_text = no_margin_div.text.strip()
+        details["description_cropped"] = full_text[:255]
+    except:
+        details["description_cropped"] = ""
+        print(f"Erro ao extrair descrição: {str(e)}")
+    
+    # Extrai classificação (texto após "Classificação")
+    try:
+        # Encontra todos os elementos que contêm "Classificação"
+        elements = driver.find_elements(By.XPATH, "//*[contains(text(), 'Classificação')]")
+        if elements:
+            # Pega o primeiro elemento encontrado e depois seu próximo irmão div
+            classification_label = elements[0]
+            next_div = classification_label.find_element(By.XPATH, "./following-sibling::div[1]")
+            details["classification"] = next_div.text.strip()
+    except:
+        details["classification"] = ""
+        print(f"Erro ao extrair classificação: {str(e)}")
+    
+    # Extrai informações de parcelamento (nova abordagem simplificada)
+    try:
+        # Localiza a div com "Formas de Pagamento" e pega a segunda div seguinte
+        pagamento_div = wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//div[contains(text(), 'Formas de Pagamento')]")
+        ))
+        
+        # Pega a segunda div irmã seguinte
+        parcelamento_div = pagamento_div.find_element(By.XPATH, "./following-sibling::div[2]")
+        details["parcelamento"] = parcelamento_div.text.strip()
+        
+    except Exception as e:
+        details["parcelamento"] = ""
+        print(f"Erro ao extrair parcelamento: {str(e)}")
+
+    try:
+        # Procura TODOS os spans com o style específico
+        spans = wait.until(EC.presence_of_all_elements_located(
+            (By.XPATH, "//span[contains(@style, 'font-size: 20px')]")
+        ))
+        
+        # Pega o ÚLTIMO span da lista
+        if spans:
+            details["nome_organizador"] = spans[-1].text.strip()
+            
+    except Exception as e:
+        print(f"Erro ao buscar organizador: {str(e)}")
+        details["nome_organizador"] = ""
+
     return details
 
 def main():
