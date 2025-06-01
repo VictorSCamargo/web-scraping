@@ -54,8 +54,11 @@ function App() {
     if (!initialLoad) return;
 
     const handleScroll = () => {
+      // Carrega novos cards quando estiver a essa distancia antes do final da página
+      const scrollThreshold = 900;
+      
       if (
-        window.innerHeight + document.documentElement.scrollTop + 100 >= 
+        window.innerHeight + document.documentElement.scrollTop + scrollThreshold >= 
         document.documentElement.offsetHeight && 
         !loading
       ) {
