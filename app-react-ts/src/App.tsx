@@ -1,35 +1,100 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect, useCallback } from 'react';
+import './App.css';
+import Card from './components/Card';
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+interface EventData {
+  url: string;
+  name: string;
+  date: string;
+  'local-subtitle': string;
+  'local-description': string;
+  subinfos: string[];
+  description_cropped: string;
+  classification: string;
+  parcelamento: string;
+  nome_organizador: string;
 }
 
-export default App
+function App() {
+  const [cards, setCards] = useState<EventData[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [initialLoad, setInitialLoad] = useState<boolean>(false);
+
+  const loadCards = useCallback(async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/blueticket.json');
+      const allData: EventData[] = await response.json();
+      
+      // Simulação de paginação
+      const itemsPerPage = 5;
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const newCards = allData.slice(startIndex, endIndex);
+
+      if (newCards.length === 0) {
+        setHasMore(false);
+      } else {
+        setCards(prevCards => {
+          // Evita duplicação verificando se o card já existe
+          const existingIds = new Set(prevCards.map(card => card.url));
+          const uniqueNewCards = newCards.filter(card => !existingIds.has(card.url));
+          return [...prevCards, ...uniqueNewCards];
+        });
+        setPage(prevPage => prevPage + 1);
+      }
+    } catch (error) {
+      console.error('Error loading cards:', error);
+    } finally {
+      setLoading(false);
+      setInitialLoad(true);
+    }
+  }, [page, loading, hasMore]);
+
+  // Carrega os primeiros cards
+  useEffect(() => {
+    if (!initialLoad) {
+      loadCards();
+    }
+  }, [initialLoad, loadCards]);
+
+  // Configura o observer para rolagem infinita
+  useEffect(() => {
+    if (!initialLoad) return;
+
+    const handleScroll = () => {
+      // Carrega novos cards quando estiver a essa distancia antes do final da página
+      const scrollThreshold = 900;
+      
+      if (
+        window.innerHeight + document.documentElement.scrollTop + scrollThreshold >= 
+        document.documentElement.offsetHeight && 
+        !loading
+      ) {
+        loadCards();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loadCards, loading, initialLoad]);
+
+  return (
+    <div className="app">
+      <h1>Eventos</h1>
+      <div className="cards-container">
+        {cards.map((card, index) => (
+          <Card key={`${card.url}-${index}`} event={card} />
+        ))}
+      </div>
+      {loading && <div className="loading">Carregando mais eventos...</div>}
+      {!hasMore && cards.length > 0 && <div className="no-more">Não há mais eventos para carregar</div>}
+    </div>
+  );
+}
+
+export default App;
