@@ -1,86 +1,106 @@
 import { useState, useEffect, useCallback } from 'react';
 import './App.css';
-import Card from './components/Card';
-import { convertBlueticketEventToGeneric, type BlueticketEvent } from './assets/convertBlueticketEventToGeneric';
+import Card, { type GenericEvent } from './components/Card';
+import { type BlueticketEvent, convertBlueticketEventToGeneric } from './utils/convertBlueticketEventToGeneric';
+
+type EventSource = 'blueticket' | 'fonte2' | 'fonte3';
 
 function App() {
-  const [blueticketEvents, setBlueticketEvents] = useState<BlueticketEvent[]>([]);
+  const [allEvents, setAllEvents] = useState<GenericEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [initialLoad, setInitialLoad] = useState<boolean>(false);
 
-  const loadCards = useCallback(async () => {
+  // Função para carregar eventos de uma fonte específica
+  const loadEventsFromSource = useCallback(async (source: EventSource) => {
     if (loading || !hasMore) return;
 
-    setLoading(true);
     try {
-      const response = await fetch('/blueticket.json');
-      const allData: BlueticketEvent[] = await response.json();
-      
-      // Simulação de paginação
-      const itemsPerPage = 5;
+      const response = await fetch(`/${source}.json`);
+      // ToDo colocar os tipos dos outros eventos aqui também, que nem exemplo comentado abaixo
+      const data: BlueticketEvent[] = await response.json();
+      // let data: BlueticketEvent[] | Fonte2Event[] | Fonte3Event[] = await response.json();
+
+
+      // Converte os eventos para GenericEvent
+      const convertedEvents = data.map(event => {
+        switch (source) {
+          case 'blueticket': return convertBlueticketEventToGeneric(event);
+          // ToDo outros
+          // case 'fonte2': return convertFonte2ToGeneric(event);
+          // case 'fonte3': return convertFonte3ToGeneric(event);
+          default: throw new Error(`Fonte desconhecida: ${source}`);
+        }
+      });
+
+      // Paginação (opcional)
+      const itemsPerPage = 6;
       const startIndex = (page - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
-      const newCards = allData.slice(startIndex, endIndex);
+      const newEvents = convertedEvents.slice(startIndex, endIndex);
 
-      if (newCards.length === 0) {
+      if (newEvents.length === 0) {
         setHasMore(false);
       } else {
-        setBlueticketEvents(prevCards => {
-          // Evita duplicação verificando se o card já existe
-          const existingIds = new Set(prevCards.map(card => card.url));
-          const uniqueNewCards = newCards.filter(card => !existingIds.has(card.url));
-          return [...prevCards, ...uniqueNewCards];
+        setAllEvents(prevEvents => {
+          const existingUrls = new Set(prevEvents.map(event => event.url));
+          const uniqueNewEvents = newEvents.filter(event => !existingUrls.has(event.url));
+          return [...prevEvents, ...uniqueNewEvents];
         });
         setPage(prevPage => prevPage + 1);
       }
     } catch (error) {
-      console.error('Error loading cards:', error);
+      console.error(`Erro ao carregar ${source}:`, error);
     } finally {
       setLoading(false);
-      setInitialLoad(true);
     }
   }, [page, loading, hasMore]);
 
-  // Carrega os primeiros cards
-  useEffect(() => {
-    if (!initialLoad) {
-      loadCards();
-    }
-  }, [initialLoad, loadCards]);
+  // Carrega eventos de todas as fontes
+  const loadAllEvents = useCallback(async () => {
+    setLoading(true);
+    await Promise.all([
+      loadEventsFromSource('blueticket'),
+      // ToDo
+      loadEventsFromSource('blueticket'),
+      // loadEventsFromSource('fonte3'),
+    ]);
+    setInitialLoad(true);
+  }, [loadEventsFromSource]);
 
-  // Configura o observer para rolagem infinita
+  // Carrega os primeiros eventos
+  useEffect(() => {
+    if (!initialLoad) loadAllEvents();
+  }, [initialLoad, loadAllEvents]);
+
+  // Rolagem infinita (igual ao seu código atual)
   useEffect(() => {
     if (!initialLoad) return;
-
     const handleScroll = () => {
-      // Carrega novos cards quando estiver a essa distancia antes do final da página
       const scrollThreshold = 900;
-      
       if (
         window.innerHeight + document.documentElement.scrollTop + scrollThreshold >= 
         document.documentElement.offsetHeight && 
         !loading
       ) {
-        loadCards();
+        loadAllEvents();
       }
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [loadCards, loading, initialLoad]);
+  }, [loadAllEvents, loading, initialLoad]);
 
   return (
     <div className="app">
       <h1>Eventos</h1>
       <div className="cards-container">
-        {blueticketEvents.map((card, index) => (
-          <Card key={`${card.url}-${index}`} event={convertBlueticketEventToGeneric(card)} />
+        {allEvents.map((event, index) => (
+          <Card key={`${event.url}-${index}`} event={event} />
         ))}
       </div>
-      {loading && <div className="loading">Carregando mais eventos...</div>}
-      {!hasMore && blueticketEvents.length > 0 && <div className="no-more">Não há mais eventos para carregar</div>}
+      {loading && <div className="loading">Carregando...</div>}
+      {!hasMore && <div className="no-more">Não há mais eventos.</div>}
     </div>
   );
 }
