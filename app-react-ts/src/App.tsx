@@ -1,22 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import Card from './components/Card';
-
-interface EventData {
-  url: string;
-  name: string;
-  date: string;
-  'local-subtitle': string;
-  'local-description': string;
-  subinfos: string[];
-  description_cropped: string;
-  classification: string;
-  parcelamento: string;
-  nome_organizador: string;
-}
+import { convertBlueticketEventToGeneric, type BlueticketEvent } from './assets/convertBlueticketEventToGeneric';
 
 function App() {
-  const [cards, setCards] = useState<EventData[]>([]);
+  const [blueticketEvents, setBlueticketEvents] = useState<BlueticketEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -28,7 +16,7 @@ function App() {
     setLoading(true);
     try {
       const response = await fetch('/blueticket.json');
-      const allData: EventData[] = await response.json();
+      const allData: BlueticketEvent[] = await response.json();
       
       // Simulação de paginação
       const itemsPerPage = 5;
@@ -39,7 +27,7 @@ function App() {
       if (newCards.length === 0) {
         setHasMore(false);
       } else {
-        setCards(prevCards => {
+        setBlueticketEvents(prevCards => {
           // Evita duplicação verificando se o card já existe
           const existingIds = new Set(prevCards.map(card => card.url));
           const uniqueNewCards = newCards.filter(card => !existingIds.has(card.url));
@@ -87,12 +75,12 @@ function App() {
     <div className="app">
       <h1>Eventos</h1>
       <div className="cards-container">
-        {cards.map((card, index) => (
-          <Card key={`${card.url}-${index}`} event={card} />
+        {blueticketEvents.map((card, index) => (
+          <Card key={`${card.url}-${index}`} event={convertBlueticketEventToGeneric(card)} />
         ))}
       </div>
       {loading && <div className="loading">Carregando mais eventos...</div>}
-      {!hasMore && cards.length > 0 && <div className="no-more">Não há mais eventos para carregar</div>}
+      {!hasMore && blueticketEvents.length > 0 && <div className="no-more">Não há mais eventos para carregar</div>}
     </div>
   );
 }

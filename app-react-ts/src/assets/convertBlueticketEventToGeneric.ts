@@ -1,6 +1,6 @@
 import type { GenericEvent } from "../components/Card";
 
-interface BlueticketEvent {
+export interface BlueticketEvent {
   url: string;
   name?: string;
   date?: string;
