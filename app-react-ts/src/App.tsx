@@ -20,13 +20,14 @@ function App() {
         const website2Data: BlueticketEvent[] = await website2Response.json();
         const website2ConvertedEvents = website2Data.map(convertBlueticketEventToGeneric);
 
-        // ToDo ajustar para outros sites
-        const events = [...blueticketConvertedEvents, ...website2ConvertedEvents]
-
         // const website3Response = await fetch('/blueticket.json');
         // const website3Data: BlueticketEvent[] = await website3Response.json();
         // const website3ConvertedEvents = website3Data.map(convertBlueticketEventToGeneric);
-        
+
+        // ToDo ajustar para outros sites
+        const events = [...blueticketConvertedEvents, ...website2ConvertedEvents]
+
+
         setAllEvents(events);
         // Mostra o primeiro lote de eventos
         // setVisibleEvents(convertedEvents.slice(0, batchSize));
