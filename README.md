@@ -38,6 +38,12 @@ Exemplo:
 
 ## Boas práticas aos desenvolvedores
 
+### React
+
+- Formate o código corretamente chamando `npm run format`
+
+### Python
+
 - Adicionem dependências ao requirements.txt;
 - Usem a pasta `prints` para salvar prints que possam ser úteis para debug durante seus testes;`
 - Podemos criar utilitários e colocá-los na pasta `utils`;

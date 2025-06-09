@@ -93,7 +93,8 @@ h1 {
   background-color: #535bf2;
 }
 
-.loading, .no-more {
+.loading,
+.no-more {
   padding: 1rem;
   margin: 1rem 0;
   color: #666;

@@ -1,4 +1,4 @@
-import seedrandom from 'seedrandom';
+import seedrandom from "seedrandom";
 
 export function shuffleWithSeed<T>(array: T[], seed: string): T[] {
   const rng = seedrandom(seed);
