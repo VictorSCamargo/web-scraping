@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import Card, { type GenericEvent } from './components/Card';
 import { type BlueticketEvent, convertBlueticketEventToGeneric } from './utils/convertBlueticketEventToGeneric';
+import { shuffleWithSeed } from './utils/shuffleWithSeed';
 
 function App() {
   const [allEvents, setAllEvents] = useState<GenericEvent[]>([]);
@@ -27,8 +28,10 @@ function App() {
         // ToDo ajustar para outros sites
         const events = [...blueticketConvertedEvents, ...website2ConvertedEvents]
 
+        // Shuffle com uma seed fixa para dar um ar de aleatoriedade inicialmente caso não seja usado outro filtro
+        const shuffledEvents = shuffleWithSeed(events, 'seedfixa')
 
-        setAllEvents(events);
+        setAllEvents(shuffledEvents);
         // Mostra o primeiro lote de eventos
         // setVisibleEvents(convertedEvents.slice(0, batchSize));
       } catch (error) {

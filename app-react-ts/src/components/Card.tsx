@@ -59,7 +59,7 @@ const Card: React.FC<CardProps> = ({ event }) => {
         )}
       </div>
       <a href={url} target="_blank" rel="noopener noreferrer" className="btn">
-        Ver detalhes
+        Ver evento completo
       </a>
     </div>
   );
