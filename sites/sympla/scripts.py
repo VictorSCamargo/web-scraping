@@ -184,7 +184,7 @@ def main():
     driver.get("https://www.sympla.com.br/eventos")
     time.sleep(5)
 
-    carregar_mais_eventos(driver, vezes=3)
+    carregar_mais_eventos(driver, vezes=20)
     links = coletar_links_eventos(driver)
     print(f"🔗 Total de links encontrados: {len(links)}")
 

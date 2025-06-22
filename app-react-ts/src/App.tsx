@@ -1,15 +1,23 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import Card, { type GenericEvent } from "./components/Card";
+import { type GenericEvent } from "./components/Card";
 import {
   type BlueticketEvent,
   convertBlueticketEventToGeneric,
 } from "./utils/convertBlueticketEventToGeneric";
 import { shuffleWithSeed } from "./utils/shuffleWithSeed";
 import { deduplicateEvents } from "./utils/deduplicateEvents";
+import CardContainer from "./components/CardContainer";
+import Pagination from "./components/Pagination";
+import {
+  convertSymplaEventToGeneric,
+  type SymplaEvent,
+} from "./utils/convertSymplaEventToGeneric";
 
 function App() {
   const [allEvents, setAllEvents] = useState<GenericEvent[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [eventsPerPage, setEventsPerPage] = useState(6);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Carrega todos os eventos de uma vez
@@ -23,26 +31,30 @@ function App() {
           convertBlueticketEventToGeneric,
         );
 
-        // ToDo ajustar para os outros sites
-        const website2Response = await fetch("/blueticket.json");
-        const website2Data: BlueticketEvent[] = await website2Response.json();
-        const website2ConvertedEvents = website2Data.map(
-          convertBlueticketEventToGeneric,
+        // Fetch Eventos Sympla
+        const symplaResponse = await fetch("/eventos_sympla_backup.json");
+        const symplaData: SymplaEvent[] = await symplaResponse.json();
+        const symplaConvertedEvents = symplaData.map(
+          convertSymplaEventToGeneric,
         );
+
+        // ToDo ajustar para os outros sites
+        // const website2Response = await fetch("/blueticket.json");
+        // const website2Data: BlueticketEvent[] = await website2Response.json();
+        // const website2ConvertedEvents = website2Data.map(
+        //   convertBlueticketEventToGeneric,
+        // );
 
         // const website3Response = await fetch('/blueticket.json');
         // const website3Data: BlueticketEvent[] = await website3Response.json();
         // const website3ConvertedEvents = website3Data.map(convertBlueticketEventToGeneric);
 
         // ToDo ajustar para outros sites
-        const events = [
-          ...blueticketConvertedEvents,
-          ...website2ConvertedEvents,
-        ];
+        const events = [...blueticketConvertedEvents, ...symplaConvertedEvents];
 
         // Shuffle com uma seed fixa para dar um ar de aleatoriedade inicialmente caso não seja usado outro filtro
         const shuffledEvents = shuffleWithSeed(events, "seedfixa");
-        const deduplicatedEvents = deduplicateEvents(shuffledEvents)
+        const deduplicatedEvents = deduplicateEvents(shuffledEvents);
 
         setAllEvents(deduplicatedEvents);
         // Mostra o primeiro lote de eventos
@@ -57,15 +69,24 @@ function App() {
     loadAllEvents();
   }, []);
 
+  const indexOfLastEvent = currentPage * eventsPerPage;
+  const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
+  const currentEvents = allEvents.slice(indexOfFirstEvent, indexOfLastEvent);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   return (
     <div className="app">
       <h1>Eventos</h1>
       {!loading && <h2>Total de eventos: {allEvents.length}</h2>}
-      <div className="cards-container">
-        {allEvents.map((event, index) => (
-          <Card key={`${event.url}-${index}`} event={event} />
-        ))}
-      </div>
+      <CardContainer events={currentEvents} />
+      {!loading && (
+        <Pagination
+          eventsPerPage={eventsPerPage}
+          totalEvents={allEvents.length}
+          paginate={paginate}
+        />
+      )}
       {loading && <div className="loading">Carregando...</div>}
     </div>
   );
