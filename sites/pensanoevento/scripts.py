@@ -26,24 +26,49 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 
 eventos_extraidos = []
 
+
+def scroll_until_no_more_new_events(driver, timeout=2, max_attempts=20):
+    """Rola a página para carregar mais eventos enquanto houver eventos novos."""
+
+    last_count = 0
+    same_count_retries = 0
+
+    for _ in range(max_attempts):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(timeout)
+
+        event_cards = driver.find_elements(By.CLASS_NAME, "card-body")
+        current_count = len(event_cards)
+
+        print(f"Eventos carregados: {current_count}")
+
+        if current_count == last_count:
+            same_count_retries += 1
+        else:
+            same_count_retries = 0
+
+        if same_count_retries >= 3:
+            print("Nenhum evento novo carregado. Finalizando scroll.")
+            break
+
+        last_count = current_count
+
+
 def extract_event_link():
     event_cards = driver.find_elements(By.CLASS_NAME, "card-body")
-
     events_links = []
-
-    quantidade_eventos_extraidos = 3
+    quantidade_eventos_extraidos = len(event_cards)  # extrair todos carregados
 
     for i, card in enumerate(event_cards[:quantidade_eventos_extraidos]):
         try:
             event_link = card.find_element(By.TAG_NAME, "a").get_attribute("href")
             print(event_link)
             events_links.append(event_link)
-
             time.sleep(1)
         except Exception as e:
             print("Erro ao extrair links dos eventos:", str(e))
-
     return events_links
+
 
 def extract_event_details(links):
     for link in links:
@@ -54,7 +79,6 @@ def extract_event_details(links):
             )
             time.sleep(2)
 
-            # Campos base
             event = {
                 "url": link,
                 "name": None,
@@ -68,14 +92,12 @@ def extract_event_details(links):
                 "nome_organizador": None,
             }
 
-            # Título principal
             try:
                 titulo = driver.find_element(By.TAG_NAME, "h1").text.strip()
                 event["name"] = titulo
             except:
                 pass
 
-            # Lista de informações (<li>)
             lis = driver.find_elements(By.CSS_SELECTOR, "div.card-body ul.list li")
             for li in lis:
                 texto = li.text.strip()
@@ -95,7 +117,6 @@ def extract_event_details(links):
                     except:
                         pass
 
-            # Endereço
             try:
                 card_bodies = driver.find_elements(By.CSS_SELECTOR, "div.card-body")
                 for card in card_bodies:
@@ -112,13 +133,12 @@ def extract_event_details(links):
                                 event["address"] = address
                             except:
                                 pass
-                            break  # achamos o card certo, podemos parar
+                            break
                     except:
                         continue
             except Exception as e:
                 print(f"⚠️ Erro ao extrair localização: {e}")
 
-            # Descrição cortada (se houver)
             try:
                 description = driver.find_element(By.CSS_SELECTOR, "div.description").text.strip()
                 event["description_cropped"] = description[:200] + "..." if len(description) > 200 else description
@@ -127,7 +147,6 @@ def extract_event_details(links):
 
             eventos_extraidos.append(event)
             print(f"✅ Evento extraído: {event['name']}")
-
             time.sleep(1)
 
         except Exception as e:
@@ -137,7 +156,7 @@ def extract_event_details(links):
 try:
     driver.get("https://www.pensanoevento.com.br/eventos/")
 
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    scroll_until_no_more_new_events(driver, timeout=2, max_attempts=20)
 
     WebDriverWait(driver, 10).until(
         ec.presence_of_all_elements_located((By.CSS_SELECTOR, ".card-text"))
@@ -145,17 +164,15 @@ try:
 
     events_links = extract_event_link()
     extract_event_details(events_links)
+
     print(events_links)
     print(eventos_extraidos)
 
-    # Cria o diretório de output se não existir
     output_dir = os.path.join(os.path.dirname(__file__), "output")
     os.makedirs(output_dir, exist_ok=True)
 
-    # Caminho completo do arquivo de saída
-    output_path = os.path.join(output_dir, "eventos.json")
+    output_path = os.path.join(output_dir, "pensanoevento.json")
 
-    # Salvar os dados extraídos em JSON
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(eventos_extraidos, f, ensure_ascii=False, indent=4)
         print(f"✅ Dados salvos em '{output_path}'")

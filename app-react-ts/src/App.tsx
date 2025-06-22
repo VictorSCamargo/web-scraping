@@ -28,29 +28,24 @@ function App() {
         const blueticketData: BlueticketEvent[] =
           await blueticketResponse.json();
         const blueticketConvertedEvents = blueticketData.map(
-          convertBlueticketEventToGeneric,
+          convertBlueticketEventToGeneric
         );
 
-        // Fetch Eventos Sympla
         const symplaResponse = await fetch("/eventos_sympla_backup.json");
         const symplaData: SymplaEvent[] = await symplaResponse.json();
         const symplaConvertedEvents = symplaData.map(
-          convertSymplaEventToGeneric,
+          convertSymplaEventToGeneric
         );
 
-        // ToDo ajustar para os outros sites
-        // const website2Response = await fetch("/blueticket.json");
-        // const website2Data: BlueticketEvent[] = await website2Response.json();
-        // const website2ConvertedEvents = website2Data.map(
-        //   convertBlueticketEventToGeneric,
-        // );
+        const pensaNoEventoResponse = await fetch("/pensanoevento.json");
+        const pensaNoEventoData: GenericEvent[] =
+          await pensaNoEventoResponse.json();
 
-        // const website3Response = await fetch('/blueticket.json');
-        // const website3Data: BlueticketEvent[] = await website3Response.json();
-        // const website3ConvertedEvents = website3Data.map(convertBlueticketEventToGeneric);
-
-        // ToDo ajustar para outros sites
-        const events = [...blueticketConvertedEvents, ...symplaConvertedEvents];
+        const events = [
+          ...pensaNoEventoData,
+          ...blueticketConvertedEvents,
+          ...symplaConvertedEvents,
+        ];
 
         // Shuffle com uma seed fixa para dar um ar de aleatoriedade inicialmente caso não seja usado outro filtro
         const shuffledEvents = shuffleWithSeed(events, "seedfixa");
