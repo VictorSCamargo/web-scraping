@@ -1,4 +1,16 @@
-# Trabalho Web Scrapping
+# Web Scraping de sites de eventos e exibição em interface web - Trabalho de Web Scraping
+
+Este repositório contém algoritmos para realização de webscraping de sites de eventos e exibição dos eventos coletados em uma interface web.
+
+Os algoritmos foram desenvolvidos durante a disciplina de Tópicos Especiais em Gerência de Dados.
+
+## Visão geral de funcionamento
+
+Para o scraping foram desenvolvidos 3 crawlers, cada um para um site diferente de eventos.
+
+Os resultados de cada crawler foram salvos em arquivos JSON.
+
+Esses resultados foram utilizados em uma aplicação React, que os traduz para cartões em uma aplicação web que exibem informações sobre os eventos.
 
 ## Preparando ambiente
 
