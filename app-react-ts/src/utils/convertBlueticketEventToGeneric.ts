@@ -1,20 +1,7 @@
-import type { GenericEvent } from "../components/Card";
-
-export interface BlueticketEvent {
-  url: string;
-  name?: string;
-  date?: string;
-  "local-subtitle"?: string;
-  "local-description"?: string;
-  subinfos?: string[];
-  description_cropped?: string;
-  classification?: string;
-  parcelamento?: string;
-  nome_organizador?: string;
-}
+import type { BlueticketEvent, GenericEvent } from "../model/eventos-model";
 
 export function convertBlueticketEventToGeneric(
-  event: BlueticketEvent,
+  event: BlueticketEvent
 ): GenericEvent {
   return {
     url: event.url,

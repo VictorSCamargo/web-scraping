@@ -1,17 +1,5 @@
 import React from "react";
-
-export interface GenericEvent {
-  url: string; // Obrigatória
-  name?: string;
-  date?: string;
-  place_name?: string;
-  address?: string;
-  subinfos?: string[];
-  description_cropped?: string;
-  classification?: string;
-  parcelamento?: string;
-  nome_organizador?: string;
-}
+import type { GenericEvent } from "../model/eventos-model";
 
 interface CardProps {
   event?: GenericEvent; // Opcional
@@ -37,20 +25,20 @@ const Card: React.FC<CardProps> = ({ event }) => {
   return (
     <div className="card">
       <h2>{name}</h2>
-      <p className="date">{date}</p>
+      <p className="date">Data: {date}</p>
       <div className="local-info">
-        <h3>{place_name}</h3>
-        <p>{address}</p>
+        <h3>Local: {place_name}</h3>
+        <p>Endereço: {address}</p>
       </div>
       <p className="description">
+        Descrição:{" "}
         {description_cropped
           ? description_cropped.endsWith("...")
             ? description_cropped
             : `${description_cropped}...`
           : "(Descrição não fornecida)"}
       </p>
-      <p className="classification">{classification}</p>
-      <p className="parcelamento">{parcelamento}</p>
+      <p className="classification">Classificação: {classification}</p>
       <p className="organizador">Organizador: {nome_organizador}</p>
       <div className="subinfos">
         {subinfos.length > 0 ? (
@@ -59,6 +47,7 @@ const Card: React.FC<CardProps> = ({ event }) => {
           <p>(Informações adicionais não disponíveis)</p>
         )}
       </div>
+      <p className="parcelamento">{parcelamento}</p>
       <a href={url} target="_blank" rel="noopener noreferrer" className="btn">
         Ver evento completo
       </a>

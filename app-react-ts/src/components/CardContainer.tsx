@@ -1,4 +1,4 @@
-import type { GenericEvent } from "./Card";
+import type { GenericEvent } from "../model/eventos-model";
 import Card from "./Card";
 
 interface CardContainerProps {

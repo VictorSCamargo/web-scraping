@@ -109,7 +109,7 @@ h1 {
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 1rem;
   width: 100%;
-  max-width: 6rem;
+  max-width: 10rem;
 }
 
 .pagination-return-btn {
@@ -128,4 +128,26 @@ h1 {
   font-size: 1rem;
   font-weight: bold;
   font-family: sans-serif;
+}
+
+.title-main {
+  font-size: 3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 60px;
+  padding: 8px 20px;
+  border-radius: 6px;
+  background-color: #f0f0f0;
+  display: inline-block;
+}
+
+.title-sub {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 6px;
+  letter-spacing: 0.5px;
 }

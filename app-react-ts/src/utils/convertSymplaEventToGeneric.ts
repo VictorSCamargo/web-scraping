@@ -1,17 +1,4 @@
-import type { GenericEvent } from "../components/Card";
-
-export interface SymplaEvent {
-  link: string;
-  titulo?: string;
-  data?: string;
-  "local-subtitle"?: string;
-  "local-description"?: string;
-  politicas_evento?: string[];
-  descricao?: string;
-  classification?: string;
-  parcelamento?: string;
-  nome_organizador?: string;
-}
+import type { GenericEvent, SymplaEvent } from "../model/eventos-model";
 
 export function convertSymplaEventToGeneric(event: SymplaEvent): GenericEvent {
   return {

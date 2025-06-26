@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../App.css";
+import "../css/App.css";
 
 interface PaginationProps {
   eventsPerPage: number;
@@ -42,7 +42,9 @@ function Pagination({ eventsPerPage, totalEvents, paginate }: PaginationProps) {
         &#8249; {/* ← Chevron Left */}
       </button>
 
-      <span className="pagination-current-page-span">{activePage}</span>
+      <span className="pagination-current-page-span">
+        {activePage} of {totalPages}
+      </span>
 
       <button
         className="pagination-next-btn"
