@@ -13,7 +13,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 
 from utils.salvar_print import salvar_print
 
-# Configuração do ChromeDriver
 chrome_options = Options()
 chrome_options.add_argument("--window-size=1920,1080")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
@@ -26,10 +25,7 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 
 eventos_extraidos = []
 
-
 def scroll_until_no_more_new_events(driver, timeout=2, max_attempts=20):
-    """Rola a página para carregar mais eventos enquanto houver eventos novos."""
-
     last_count = 0
     same_count_retries = 0
 
@@ -48,16 +44,14 @@ def scroll_until_no_more_new_events(driver, timeout=2, max_attempts=20):
             same_count_retries = 0
 
         if same_count_retries >= 3:
-            print("Nenhum evento novo carregado. Finalizando scroll.")
             break
 
         last_count = current_count
 
-
 def extract_event_link():
     event_cards = driver.find_elements(By.CLASS_NAME, "card-body")
     events_links = []
-    quantidade_eventos_extraidos = len(event_cards)  # extrair todos carregados
+    quantidade_eventos_extraidos = len(event_cards)
 
     for i, card in enumerate(event_cards[:quantidade_eventos_extraidos]):
         try:
@@ -68,7 +62,6 @@ def extract_event_link():
         except Exception as e:
             print("Erro ao extrair links dos eventos:", str(e))
     return events_links
-
 
 def extract_event_details(links):
     for link in links:
@@ -137,7 +130,7 @@ def extract_event_details(links):
                     except:
                         continue
             except Exception as e:
-                print(f"⚠️ Erro ao extrair localização: {e}")
+                print(f"Erro ao extrair localização: {e}")
 
             try:
                 description = driver.find_element(By.CSS_SELECTOR, "div.description").text.strip()
@@ -146,12 +139,11 @@ def extract_event_details(links):
                 pass
 
             eventos_extraidos.append(event)
-            print(f"✅ Evento extraído: {event['name']}")
+            print(f"Evento extraído: {event['name']}")
             time.sleep(1)
 
         except Exception as e:
-            print(f"⚠️ Erro ao extrair detalhes do evento {link}: {e}")
-
+            print(f"Erro ao extrair detalhes do evento {link}: {e}")
 
 try:
     driver.get("https://www.pensanoevento.com.br/eventos/")
@@ -175,10 +167,10 @@ try:
 
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(eventos_extraidos, f, ensure_ascii=False, indent=4)
-        print(f"✅ Dados salvos em '{output_path}'")
+        print(f"Dados salvos em '{output_path}'")
 
 except Exception as e:
-    print("⚠️ Ocorreu um erro:", str(e))
+    print("Ocorreu um erro:", str(e))
     salvar_print(driver, nome_base="erro")
 
 finally:
