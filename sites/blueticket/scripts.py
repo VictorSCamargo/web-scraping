@@ -15,7 +15,7 @@ from utils.safe_get_text import safe_get_text
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--window-size=1920,1080")
-service = Service("C:/chromedriver/chromedriver.exe")
+service = Service('../../chromedriver/chromedriver.exe')
 driver = webdriver.Chrome(service=service, options=chrome_options)
 wait = WebDriverWait(driver, 10)
 cards_to_extract_before_saving = 2
