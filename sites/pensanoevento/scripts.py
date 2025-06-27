@@ -20,7 +20,7 @@ chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-infobars")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
-service = Service("./chromedriver")
+service = Service('../../chromedriver/chromedriver.exe')
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 eventos_extraidos = []

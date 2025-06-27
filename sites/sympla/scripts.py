@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException
 
-CHROMEDRIVER_PATH = r'C:\Program Files\chromedriver-win64\chromedriver.exe'
+CHROMEDRIVER_PATH = '../../chromedriver/chromedriver.exe'
 
 def carregar_mais_eventos(driver, vezes=3):
     for _ in range(vezes):
