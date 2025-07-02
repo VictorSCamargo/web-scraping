@@ -4,6 +4,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import NoSuchElementException
+import random
+from selenium.common.exceptions import WebDriverException
 
 CHROMEDRIVER_PATH = '../../chromedriver/chromedriver.exe'
 
@@ -14,7 +16,7 @@ def carregar_mais_eventos(driver, vezes=3):
             driver.execute_script("arguments[0].scrollIntoView(true);", botao)
             time.sleep(1)
             driver.execute_script("arguments[0].click();", botao)
-            time.sleep(3)
+            time.sleep(2)
         except NoSuchElementException:
             print("Não há mais eventos para carregar.")
             break
@@ -178,36 +180,59 @@ def salvar_em_json(dados, caminho="eventos_sympla_backup.json"):
 
 def main():
     options = webdriver.ChromeOptions()
+    options.add_argument("--disable-gpu")
+    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36")
     options.add_argument('--start-maximized')
+
     driver = webdriver.Chrome(service=Service(CHROMEDRIVER_PATH), options=options)
 
+    print("🔍 Acessando a página principal...")
     driver.get("https://www.sympla.com.br/eventos")
     time.sleep(5)
 
-    carregar_mais_eventos(driver, vezes=20)
+    carregar_mais_eventos(driver, vezes=80)
     links = coletar_links_eventos(driver)
     print(f"🔗 Total de links encontrados: {len(links)}")
 
     dados_eventos = []
 
-    for link in links[:-1]:
-        driver.get(link)
-        time.sleep(3)
+    for i, link in enumerate(links[:-1]):
+        print(f"\n➡️  Acessando link {i+1}: {link}")
+        success = False
+        tentativas = 0
 
-        evento = {
-            "link": link,
-            "titulo": extrair_titulo(driver),
-            "data": extrair_data(driver),
-            "descricao": extrair_descricao(driver),
-            "politicas_evento": extrair_politicas_evento(driver),
-            "nome_organizador": extrair_produtor(driver),
-            "parcelamento": extrair_parcelamento(driver),
-            **extrair_local(driver)
-        }
+        while not success and tentativas < 3:
+            try:
+                driver.get(link)
+                time.sleep(random.uniform(2.5, 5.0))  # pausa aleatória
+                success = True
+            except WebDriverException as e:
+                tentativas += 1
+                print(f"⚠️  Tentativa {tentativas} falhou ao acessar {link}: {e}")
+                time.sleep(2)
 
-        if evento['titulo'] != "Título não encontrado":
-            dados_eventos.append(evento)
-            print(f"📌 Evento coletado: {evento['titulo']}")
+        if not success:
+            print(f"❌ Link ignorado após 3 tentativas: {link}")
+            continue
+
+        try:
+            evento = {
+                "link": link,
+                "titulo": extrair_titulo(driver),
+                "data": extrair_data(driver),
+                "descricao": extrair_descricao(driver),
+                "politicas_evento": extrair_politicas_evento(driver),
+                "nome_organizador": extrair_produtor(driver),
+                "parcelamento": extrair_parcelamento(driver),
+                **extrair_local(driver)
+            }
+
+            if evento['titulo'] != "Título não encontrado":
+                dados_eventos.append(evento)
+                print(f"📌 Evento coletado: {evento['titulo']}")
+        except Exception as e:
+            print(f"❌ Erro ao coletar dados do evento {link}: {e}")
+            continue
 
     salvar_em_json(dados_eventos)
     driver.quit()
